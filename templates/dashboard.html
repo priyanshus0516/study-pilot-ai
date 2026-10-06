@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard – StudyPilot AI{% endblock %}
+{% block header_title %}Student Overview{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <!-- Welcome Header -->
+    <div style="margin-bottom: 28px;">
+        <h1 style="font-size: 1.85rem; margin-bottom: 6px;">Welcome back, {{ user.name }} 👋</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Here is your intelligent study summary and active course progress.</p>
+    </div>
+
+    <!-- Weak Topic Alert Box (If detected) -->
+    {% if stats.weak_topics %}
+    <div class="recommendation-box">
+        <div class="rec-content">
+            <div class="rec-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="rec-text">
+                <h3>Recommended Focus Area</h3>
+                <p>{{ stats.weak_topics[0].suggestion }}</p>
+            </div>
+        </div>
+        <div class="rec-actions">
+            <a href="{{ url_for('quiz.quiz_home', topic=stats.weak_topics[0].topic) }}" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-brain"></i> Practice Quiz
+            </a>
+            <a href="{{ url_for('summary.summary_view') }}" class="btn btn-secondary btn-sm">
+                <i class="fa-solid fa-file-lines"></i> Review Summary
+            </a>
+            <a href="{{ url_for('flashcards.flashcards_home', topic=stats.weak_topics[0].topic) }}" class="btn btn-accent btn-sm">
+                <i class="fa-solid fa-clone"></i> Flashcards
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Key Metrics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon primary"><i class="fa-solid fa-file-pdf"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.total_documents }}</div>
+                <div class="stat-label">Uploaded Documents</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon secondary"><i class="fa-solid fa-comments"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.questions_asked }}</div>
+                <div class="stat-label">Questions Asked</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon warning"><i class="fa-solid fa-trophy"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.avg_quiz_score }}%</div>
+                <div class="stat-label">Avg Quiz Score ({{ stats.quiz_attempts }} attempts)</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon success"><i class="fa-solid fa-clock"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.study_hours }}h</div>
+                <div class="stat-label">Total Study Time</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Row -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px;">
+        <a href="{{ url_for('documents.list_documents') }}" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 16px; padding: 18px;">
+            <div class="stat-icon primary" style="width: 42px; height: 42px; font-size: 1.1rem;"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <div>
+                <h4 style="font-size: 0.96rem; color: #fff;">Upload Notes</h4>
+                <p style="font-size: 0.78rem; color: var(--text-muted);">Index PDF & DOCX</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('qa.chat_view') }}" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 16px; padding: 18px;">
+            <div class="stat-icon secondary" style="width: 42px; height: 42px; font-size: 1.1rem;"><i class="fa-solid fa-comments"></i></div>
+            <div>
+                <h4 style="font-size: 0.96rem; color: #fff;">Ask AI Tutor</h4>
+                <p style="font-size: 0.78rem; color: var(--text-muted);">Grounded material Q&A</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('quiz.quiz_home') }}" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 16px; padding: 18px;">
+            <div class="stat-icon warning" style="width: 42px; height: 42px; font-size: 1.1rem;"><i class="fa-solid fa-brain"></i></div>
+            <div>
+                <h4 style="font-size: 0.96rem; color: #fff;">New Quiz</h4>
+                <p style="font-size: 0.78rem; color: var(--text-muted);">Test topic mastery</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('flashcards.flashcards_home') }}" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 16px; padding: 18px;">
+            <div class="stat-icon success" style="width: 42px; height: 42px; font-size: 1.1rem;"><i class="fa-solid fa-clone"></i></div>
+            <div>
+                <h4 style="font-size: 0.96rem; color: #fff;">3D Flashcards</h4>
+                <p style="font-size: 0.78rem; color: var(--text-muted);">Interactive cards</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Main 2-Column Split: Materials & Activity -->
+    <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px;">
+        <!-- Left: Recent Study Materials -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="card-title"><i class="fa-solid fa-folder-open" style="color: var(--primary);"></i> Recent Study Materials</h3>
+                <a href="{{ url_for('documents.list_documents') }}" class="btn btn-secondary btn-sm">View All</a>
+            </div>
+
+            {% if stats.recent_documents %}
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    {% for doc in stats.recent_documents %}
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--bg-surface-elevated); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <i class="fa-solid fa-file-pdf" style="font-size: 1.5rem; color: #f87171;"></i>
+                            <div>
+                                <h4 style="font-size: 0.95rem; font-weight: 600;">{{ doc.filename }}</h4>
+                                <p style="font-size: 0.78rem; color: var(--text-muted);">{{ doc.chunk_count }} Chunks • {{ doc.total_pages }} Pages • {{ doc.uploaded_at }}</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{{ url_for('qa.chat_view') }}" class="btn btn-secondary btn-sm" title="Ask AI"><i class="fa-solid fa-comments"></i></a>
+                            <a href="{{ url_for('summary.summary_view', doc_id=doc.id) }}" class="btn btn-secondary btn-sm" title="Summarize"><i class="fa-solid fa-file-lines"></i></a>
+                            <a href="{{ url_for('quiz.quiz_home', topic=doc.filename.rsplit('.', 1)[0]) }}" class="btn btn-primary btn-sm" title="Take Quiz"><i class="fa-solid fa-brain"></i></a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                    <i class="fa-solid fa-folder-open" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4;"></i>
+                    <p>No study materials uploaded yet.</p>
+                    <a href="{{ url_for('documents.list_documents') }}" class="btn btn-primary btn-sm" style="margin-top: 14px;">Upload Your First PDF</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right: Recent Activity Feed -->
+        <div class="card">
+            <h3 class="card-title" style="margin-bottom: 20px;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--secondary);"></i> Recent Activity</h3>
+            
+            {% if stats.recent_activities %}
+                <div class="timeline">
+                    {% for act in stats.recent_activities %}
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <h4>{{ act.details }}</h4>
+                            <p>{{ act.created_at }} • +{{ act.duration }} mins study time</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                    <i class="fa-solid fa-list-check" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4;"></i>
+                    <p>No study activity recorded yet. Start by uploading notes or asking a question!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

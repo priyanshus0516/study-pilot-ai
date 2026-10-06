@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Study Chat – StudyPilot AI{% endblock %}
+{% block header_title %}Course-Grounded AI Tutor{% endblock %}
+
+{% block content %}
+<div class="chat-page">
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="stat-icon primary" style="width: 38px; height: 38px; font-size: 1.1rem;">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.05rem;">StudyPilot Intelligent Chat</h3>
+                    <p style="font-size: 0.76rem; color: var(--text-muted);">Grounded strictly in your uploaded course materials</p>
+                </div>
+            </div>
+
+            <!-- Material Target Selector -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="chat-doc-select" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 500;">Context Scope:</label>
+                <select id="chat-doc-select" class="form-select" style="padding: 6px 12px; font-size: 0.85rem; width: auto;">
+                    <option value="">All Uploaded Notes (Global Search)</option>
+                    {% for doc in documents %}
+                        <option value="{{ doc.id }}">{{ doc.filename }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chat-messages">
+            <!-- Initial Assistant Welcome -->
+            <div class="message-row ai">
+                <div class="msg-avatar ai-av"><i class="fa-solid fa-brain"></i></div>
+                <div class="message-bubble">
+                    Hello {{ user.name }}! I am your <strong>StudyPilot AI</strong> tutor. Ask me any question about your uploaded documents, definitions, concepts, or exam preparation topics. I will answer strictly based on your lecture notes and cite the exact pages.
+                </div>
+            </div>
+
+            <!-- Past Question History -->
+            {% for h in history %}
+            <div class="message-row user">
+                <div class="msg-avatar user-av"><i class="fa-solid fa-user"></i></div>
+                <div class="message-bubble">{{ h.question }}</div>
+            </div>
+            <div class="message-row ai">
+                <div class="msg-avatar ai-av"><i class="fa-solid fa-brain"></i></div>
+                <div class="message-bubble">
+                    {{ h.answer | replace('\n\n', '<br><br>') | replace('\n', '<br>') | safe }}
+                    {% if h.source_reference and h.source_reference != 'None' %}
+                    <div>
+                        <span class="source-badge">
+                            <i class="fa-solid fa-book-open"></i> Source: {{ h.source_reference }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Suggestion Prompt Chips -->
+        <div style="padding: 8px 24px; background: var(--bg-surface); border-top: 1px solid var(--border-color); display: flex; gap: 8px; overflow-x: auto; white-space: nowrap;">
+            <button type="button" class="btn btn-secondary btn-sm prompt-chip" data-prompt="What is a virtual function?">
+                💡 What is a virtual function?
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm prompt-chip" data-prompt="Explain polymorphism with real-world examples">
+                💡 Explain polymorphism
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm prompt-chip" data-prompt="What is the difference between procedural and OOP paradigms?">
+                💡 Procedural vs OOP
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm prompt-chip" data-prompt="Give me 4 important exam questions on this material">
+                💡 Exam questions
+            </button>
+        </div>
+
+        <!-- Chat Input Form -->
+        <div class="chat-input-area">
+            <form id="chat-form" class="chat-form">
+                <input type="text" id="chat-input" class="form-control" placeholder="Ask anything about your study material (e.g. 'What is runtime polymorphism?')..." autocomplete="off" required>
+                <button type="submit" class="btn btn-primary" id="chat-send-btn">
+                    <i class="fa-solid fa-paper-plane"></i> Ask
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

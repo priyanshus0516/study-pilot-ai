@@ -1,0 +1,33 @@
+UNIT 4: OBJECT ORIENTED PROGRAMMING IN C++
+TOPIC: POLYMORPHISM AND VIRTUAL FUNCTIONS
+
+1. Overview of Polymorphism
+Polymorphism literally means "many forms". It is one of the four foundational pillars of Object-Oriented Programming (OOP), alongside Encapsulation, Abstraction, and Inheritance. Polymorphism enables entities such as functions or operators to behave differently based on the calling context.
+
+2. Types of Polymorphism
+There are two primary categories of polymorphism:
+- Compile-time Polymorphism (Static Binding or Early Binding):
+  Resolved during compilation. Examples include Function Overloading and Operator Overloading. It offers high execution speed because function addresses are resolved ahead of time.
+- Runtime Polymorphism (Dynamic Binding or Late Binding):
+  Resolved during program execution using Virtual Functions. The compiler cannot determine which function body to call until runtime, depending on the actual type of object pointed to.
+
+3. Virtual Functions
+A virtual function is a member function declared within a base class using the keyword 'virtual' and redefined (overridden) in one or more derived classes.
+When a base class pointer or reference points to an object of a derived class, executing a virtual function triggers the derived class's implementation rather than the base class version.
+
+Key Rules of Virtual Functions:
+- Must be a member of a class.
+- Cannot be static members because static functions are not tied to object instances.
+- Accessed via base class pointers or references to achieve dynamic dispatch.
+- Can be friends of other classes.
+- A virtual function can be declared with '= 0', turning it into a Pure Virtual Function. A class containing at least one pure virtual function is an Abstract Base Class and cannot be instantiated directly.
+
+4. Internal Mechanism: VTABLE and VPTR
+How does runtime polymorphism actually work internally?
+- The compiler constructs a Virtual Method Table (VTABLE) for every class that contains or inherits virtual functions. The VTABLE is an array of function pointers.
+- Every object of such a class contains an invisible pointer called VPTR (Virtual Pointer), which points to the class's VTABLE.
+- At runtime, invocation through the base pointer follows: BasePointer -> VPTR -> VTABLE[index] -> TargetFunctionAddress.
+
+5. Real-World Applications & Viva Focus
+- Virtual destructors: Always make base class destructors virtual if deleting derived objects via base pointers to prevent memory leaks.
+- Abstract classes serve as architectural blueprints for modular frameworks and device drivers.

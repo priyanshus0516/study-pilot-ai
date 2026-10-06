@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Engine & Model Settings – StudyPilot AI{% endblock %}
+{% block header_title %}AI Engine & API Configuration{% endblock %}
+
+{% block content %}
+<div class="settings-page" style="max-width: 900px; margin: 0 auto;">
+    <div style="margin-bottom: 28px;">
+        <h1 style="font-size: 1.85rem; margin-bottom: 6px;">AI Engine Configuration</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Configure your preferred LLM provider (Google Gemini or OpenAI ChatGPT) or use the local offline study engine.</p>
+    </div>
+
+    <!-- Active Engine Status Card -->
+    <div class="card" style="margin-bottom: 28px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(6, 182, 212, 0.08)); border-color: rgba(99, 102, 241, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div class="stat-icon {% if status_info.provider == 'gemini' %}primary{% elif status_info.provider == 'openai' %}secondary{% else %}warning{% endif %}" style="width: 52px; height: 52px; font-size: 1.5rem;">
+                    {% if status_info.provider == 'gemini' %}
+                        <i class="fa-brands fa-google"></i>
+                    {% elif status_info.provider == 'openai' %}
+                        <i class="fa-solid fa-robot"></i>
+                    {% else %}
+                        <i class="fa-solid fa-bolt"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em;">Currently Active Engine</span>
+                    <h2 style="font-size: 1.35rem; margin-top: 2px;">{{ status_info.name }}</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">
+                        {% if status_info.is_live %}
+                            <span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> Connected to Live LLM API</span>
+                        {% else %}
+                            <span style="color: var(--warning);"><i class="fa-solid fa-shield-halved"></i> Running local offline study heuristics (No API keys needed)</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div>
+                <span class="status-badge" style="font-size: 0.85rem; padding: 8px 16px;">
+                    <span class="status-dot"></span> Ready for Grounded Q&A
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Form -->
+    <form method="POST" action="{{ url_for('settings.settings_view') }}" id="settings-form">
+        <!-- Provider Selection -->
+        <div class="card" style="margin-bottom: 24px;">
+            <h3 class="card-title" style="margin-bottom: 16px;"><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> Preferred AI Provider</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">Choose which AI model handles question answering, summarization, and quiz generation.</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <label class="option-label" style="display: flex; flex-direction: column; align-items: flex-start; padding: 18px; cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 8px;">
+                        <input type="radio" name="default_ai_provider" value="auto" {% if default_provider == 'auto' %}checked{% endif %}>
+                        <strong style="font-size: 1rem; color: #fff;">Auto-Detect</strong>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Uses Gemini first if key exists, otherwise OpenAI, else Offline.</p>
+                </label>
+
+                <label class="option-label" style="display: flex; flex-direction: column; align-items: flex-start; padding: 18px; cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 8px;">
+                        <input type="radio" name="default_ai_provider" value="gemini" {% if default_provider == 'gemini' %}checked{% endif %}>
+                        <strong style="font-size: 1rem; color: #fff;"><i class="fa-brands fa-google" style="color: #60a5fa;"></i> Google Gemini</strong>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Recommended. Fast, generous free quota, 1M token context.</p>
+                </label>
+
+                <label class="option-label" style="display: flex; flex-direction: column; align-items: flex-start; padding: 18px; cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 8px;">
+                        <input type="radio" name="default_ai_provider" value="openai" {% if default_provider == 'openai' %}checked{% endif %}>
+                        <strong style="font-size: 1rem; color: #fff;"><i class="fa-solid fa-robot" style="color: #34d399;"></i> OpenAI ChatGPT</strong>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Powers GPT-4o-mini and GPT-4o for high reasoning.</p>
+                </label>
+
+                <label class="option-label" style="display: flex; flex-direction: column; align-items: flex-start; padding: 18px; cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 8px;">
+                        <input type="radio" name="default_ai_provider" value="offline" {% if default_provider == 'offline' %}checked{% endif %}>
+                        <strong style="font-size: 1rem; color: #fff;"><i class="fa-solid fa-bolt" style="color: #fbbf24;"></i> Offline Local</strong>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">100% offline heuristic parser. Zero cost & reliable.</p>
+                </label>
+            </div>
+        </div>
+
+        <!-- Google Gemini Credentials Section -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 class="card-title"><i class="fa-brands fa-google" style="color: #60a5fa;"></i> Google Gemini Configuration</h3>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="font-size: 0.8rem;">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Get Free Gemini Key
+                </a>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="gemini_model">Gemini Model</label>
+                <select name="gemini_model" id="gemini_model" class="form-select">
+                    <option value="gemini-1.5-flash" {% if gemini_model == 'gemini-1.5-flash' %}selected{% endif %}>gemini-1.5-flash (Fast, recommended, generous free tier)</option>
+                    <option value="gemini-1.5-pro" {% if gemini_model == 'gemini-1.5-pro' %}selected{% endif %}>gemini-1.5-pro (Deep reasoning, long documents)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="gemini_api_key">Gemini API Key</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="password" name="gemini_api_key" id="gemini_api_key" class="form-control" placeholder="{% if has_gemini_key %}Saved ({{ masked_gemini }}) - leave empty to keep{% else %}Paste AIzaSy... API key{% endif %}">
+                    <button type="button" class="btn btn-secondary" onclick="togglePasswordVisibility('gemini_api_key', this)">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="testLiveConnection('gemini')">
+                        <i class="fa-solid fa-plug"></i> Test
+                    </button>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 6px;">
+                    <span style="font-size: 0.78rem; color: var(--text-muted);">Starts with <code>AIzaSy...</code>. Stored securely in your workspace <code>.env</code>.</span>
+                    {% if has_gemini_key %}
+                    <label style="font-size: 0.78rem; color: var(--danger); cursor: pointer;">
+                        <input type="checkbox" name="clear_gemini_key" value="1"> Clear saved key
+                    </label>
+                    {% endif %}
+                </div>
+            </div>
+            <div id="gemini-test-result" style="display: none; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.88rem; margin-top: 10px;"></div>
+        </div>
+
+        <!-- OpenAI ChatGPT Credentials Section -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 class="card-title"><i class="fa-solid fa-robot" style="color: #34d399;"></i> OpenAI ChatGPT Configuration</h3>
+                <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="font-size: 0.8rem;">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Get OpenAI Key
+                </a>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="openai_model">ChatGPT Model</label>
+                <select name="openai_model" id="openai_model" class="form-select">
+                    <option value="gpt-4o-mini" {% if openai_model == 'gpt-4o-mini' %}selected{% endif %}>gpt-4o-mini (Fast, cost-effective, high quality)</option>
+                    <option value="gpt-4o" {% if openai_model == 'gpt-4o' %}selected{% endif %}>gpt-4o (State-of-the-art flagship model)</option>
+                    <option value="gpt-3.5-turbo" {% if openai_model == 'gpt-3.5-turbo' %}selected{% endif %}>gpt-3.5-turbo (Legacy model)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="openai_api_key">OpenAI API Key</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="password" name="openai_api_key" id="openai_api_key" class="form-control" placeholder="{% if has_openai_key %}Saved ({{ masked_openai }}) - leave empty to keep{% else %}Paste sk-... API key{% endif %}">
+                    <button type="button" class="btn btn-secondary" onclick="togglePasswordVisibility('openai_api_key', this)">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="testLiveConnection('openai')">
+                        <i class="fa-solid fa-plug"></i> Test
+                    </button>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 6px;">
+                    <span style="font-size: 0.78rem; color: var(--text-muted);">Starts with <code>sk-...</code>. Stored securely in your workspace <code>.env</code>.</span>
+                    {% if has_openai_key %}
+                    <label style="font-size: 0.78rem; color: var(--danger); cursor: pointer;">
+                        <input type="checkbox" name="clear_openai_key" value="1"> Clear saved key
+                    </label>
+                    {% endif %}
+                </div>
+            </div>
+            <div id="openai-test-result" style="display: none; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.88rem; margin-top: 10px;"></div>
+        </div>
+
+        <!-- Submit Button -->
+        <div style="text-align: right; margin-bottom: 40px;">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-floppy-disk"></i> Save & Apply Configuration
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePasswordVisibility(fieldId, btn) {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<i class="fa-regular fa-eye-slash"></i>';
+    } else {
+        input.type = 'password';
+        btn.innerHTML = '<i class="fa-regular fa-eye"></i>';
+    }
+}
+
+async function testLiveConnection(provider) {
+    const keyInput = document.getElementById(provider === 'gemini' ? 'gemini_api_key' : 'openai_api_key');
+    const modelSelect = document.getElementById(provider === 'gemini' ? 'gemini_model' : 'openai_model');
+    const resultBox = document.getElementById(provider === 'gemini' ? 'gemini-test-result' : 'openai-test-result');
+
+    resultBox.style.display = 'block';
+    resultBox.style.background = 'var(--bg-surface-elevated)';
+    resultBox.style.border = '1px solid var(--border-color)';
+    resultBox.style.color = 'var(--text-muted)';
+    resultBox.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Testing API handshake with provider...';
+
+    try {
+        const resp = await fetch('/settings/test-connection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                provider: provider,
+                api_key: keyInput ? keyInput.value.trim() : '',
+                model_name: modelSelect ? modelSelect.value : ''
+            })
+        });
+
+        const data = await resp.json();
+        if (data.success) {
+            resultBox.style.background = 'var(--success-bg)';
+            resultBox.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+            resultBox.style.color = '#6ee7b7';
+            resultBox.innerHTML = `<i class="fa-solid fa-check-circle"></i> <strong>Success:</strong> ${data.message}`;
+        } else {
+            resultBox.style.background = 'var(--danger-bg)';
+            resultBox.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+            resultBox.style.color = '#fca5a5';
+            resultBox.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> <strong>Error:</strong> ${data.message}`;
+        }
+    } catch (err) {
+        resultBox.style.background = 'var(--danger-bg)';
+        resultBox.style.color = '#fca5a5';
+        resultBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Failed to communicate with StudyPilot server.';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Taking Quiz: {{ quiz.topic }} – StudyPilot AI{% endblock %}
+{% block header_title %}Quiz Assessment{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <!-- Quiz Header Banner -->
+    <div class="card" style="margin-bottom: 24px; padding: 20px 28px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--secondary); font-weight: 700; letter-spacing: 0.05em;">Active Assessment</span>
+            <h2 style="font-size: 1.4rem; margin-top: 4px;">{{ quiz.topic }}</h2>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <span style="background: var(--bg-surface-elevated); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color);">
+                <i class="fa-solid fa-gauge-high" style="color: var(--warning);"></i> {{ quiz.difficulty }}
+            </span>
+            <span style="background: var(--bg-surface-elevated); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color);">
+                <i class="fa-solid fa-list-check" style="color: var(--primary);"></i> {{ questions | length }} Questions
+            </span>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('quiz.submit_quiz', quiz_id=quiz.id) }}" id="quiz-submission-form">
+        {% for q in questions %}
+        <div class="question-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Question {{ loop.index }} of {{ questions | length }}</span>
+            </div>
+            
+            <h3 class="question-title">{{ q.question }}</h3>
+
+            <div class="options-grid">
+                <!-- Option A -->
+                <label class="option-label">
+                    <input type="radio" name="question_{{ q.id }}" value="A" required style="display: none;">
+                    <span class="option-badge">A</span>
+                    <span class="option-text">{{ q.option_a }}</span>
+                </label>
+
+                <!-- Option B -->
+                <label class="option-label">
+                    <input type="radio" name="question_{{ q.id }}" value="B" style="display: none;">
+                    <span class="option-badge">B</span>
+                    <span class="option-text">{{ q.option_b }}</span>
+                </label>
+
+                <!-- Option C -->
+                <label class="option-label">
+                    <input type="radio" name="question_{{ q.id }}" value="C" style="display: none;">
+                    <span class="option-badge">C</span>
+                    <span class="option-text">{{ q.option_c }}</span>
+                </label>
+
+                <!-- Option D -->
+                <label class="option-label">
+                    <input type="radio" name="question_{{ q.id }}" value="D" style="display: none;">
+                    <span class="option-badge">D</span>
+                    <span class="option-text">{{ q.option_d }}</span>
+                </label>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px;">
+            <a href="{{ url_for('quiz.quiz_home') }}" class="btn btn-secondary" onclick="return confirm('Exit quiz? Your progress will not be submitted.');">
+                <i class="fa-solid fa-arrow-left"></i> Exit to Quizzes
+            </a>
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-paper-plane"></i> Submit Answers & View Analysis
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}My Materials – StudyPilot AI{% endblock %}
+{% block header_title %}Study Material Management{% endblock %}
+
+{% block content %}
+<div class="materials-page">
+    <div style="margin-bottom: 24px;">
+        <h1 style="font-size: 1.65rem; margin-bottom: 6px;">Course Notes & Documents</h1>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">Upload PDFs, text notes, or Word documents. Text is automatically cleaned and chunked for grounded AI learning.</p>
+    </div>
+
+    <!-- Drag & Drop Upload Zone -->
+    <div class="card" style="margin-bottom: 30px;">
+        <form method="POST" action="{{ url_for('documents.upload_document') }}" enctype="multipart/form-data" id="upload-form">
+            <input type="file" name="file" id="file-upload-input" accept=".pdf,.txt,.docx" style="display: none;" required>
+            
+            <div class="dropzone" id="document-dropzone">
+                <div class="dropzone-icon">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 8px;">Drag & Drop Your Study PDF or Notes Here</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">Supports PDF, TXT, and DOCX (Max 16 MB per file)</p>
+                <div id="selected-file-name" style="display: none; color: #a5b4fc; font-weight: 600; margin-bottom: 16px;"></div>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('file-upload-input').click()">
+                    <i class="fa-solid fa-folder-open"></i> Browse Local Files
+                </button>
+            </div>
+
+            <div style="margin-top: 18px; text-align: right;">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Process & Index Document
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Uploaded Documents Table -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 class="card-title"><i class="fa-solid fa-database" style="color: var(--primary);"></i> Indexed Study Documents</h3>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">{{ documents | length }} files ready</span>
+        </div>
+
+        {% if documents %}
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Document Name</th>
+                        <th>Format</th>
+                        <th>Size</th>
+                        <th>Pages</th>
+                        <th>Chunks</th>
+                        <th>Uploaded On</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px; font-weight: 600;">
+                                {% if doc.file_type == 'pdf' %}
+                                    <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i>
+                                {% elif doc.file_type == 'docx' %}
+                                    <i class="fa-solid fa-file-word" style="color: #3b82f6;"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-file-lines" style="color: #10b981;"></i>
+                                {% endif %}
+                                <span>{{ doc.filename }}</span>
+                            </div>
+                        </td>
+                        <td><span style="text-transform: uppercase; font-size: 0.8rem; background: var(--bg-surface-elevated); padding: 3px 8px; border-radius: 4px;">{{ doc.file_type }}</span></td>
+                        <td>{{ (doc.file_size / 1024) | round(1) }} KB</td>
+                        <td>{{ doc.total_pages }}</td>
+                        <td>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="previewChunks({{ doc.id }}, '{{ doc.filename }}')" title="View Chunks">
+                                <i class="fa-solid fa-cubes"></i> {{ doc.chunks | length }}
+                            </button>
+                        </td>
+                        <td style="color: var(--text-muted);">{{ doc.uploaded_at.strftime('%b %d, %Y') }}</td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 6px;">
+                                <a href="{{ url_for('qa.chat_view') }}" class="btn btn-secondary btn-sm" title="Ask AI about this"><i class="fa-solid fa-comments"></i></a>
+                                <a href="{{ url_for('summary.summary_view', doc_id=doc.id) }}" class="btn btn-secondary btn-sm" title="Generate Summary"><i class="fa-solid fa-file-lines"></i></a>
+                                <a href="{{ url_for('quiz.quiz_home', topic=doc.filename.rsplit('.', 1)[0]) }}" class="btn btn-primary btn-sm" title="Practice Quiz"><i class="fa-solid fa-brain"></i></a>
+                                <form method="POST" action="{{ url_for('documents.delete_document', doc_id=doc.id) }}" style="display: inline;" onsubmit="return confirm('Delete this study material and all its indexed chunks?');">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete Document"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 50px 20px; color: var(--text-muted);">
+            <i class="fa-solid fa-file-arrow-up" style="font-size: 3rem; margin-bottom: 12px; opacity: 0.3;"></i>
+            <h3>No study materials uploaded yet</h3>
+            <p style="font-size: 0.92rem; margin-top: 6px;">Drop a file above to begin extracting notes and generating quizzes!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal for Viewing Extracted Chunks -->
+<div id="chunks-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 20px;">
+    <div class="card" style="width: 100%; max-width: 720px; max-height: 85vh; display: flex; flex-direction: column; padding: 26px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+            <h3 id="modal-doc-title" style="font-size: 1.15rem;"><i class="fa-solid fa-cubes" style="color: var(--secondary);"></i> Indexed Knowledge Chunks</h3>
+            <button type="button" onclick="closeChunksModal()" style="background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer;">&times;</button>
+        </div>
+        <div id="modal-chunks-body" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 6px;">
+            <!-- Loaded dynamically via JS -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function previewChunks(docId, docName) {
+    const modal = document.getElementById('chunks-modal');
+    const title = document.getElementById('modal-doc-title');
+    const body = document.getElementById('modal-chunks-body');
+    
+    title.innerHTML = `<i class="fa-solid fa-cubes" style="color: var(--secondary);"></i> Chunks for: ${docName}`;
+    body.innerHTML = '<div style="text-align: center; padding: 30px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading chunks...</div>';
+    modal.style.display = 'flex';
+
+    try {
+        const resp = await fetch(`/documents/${docId}/chunks`);
+        const data = await resp.json();
+        
+        body.innerHTML = '';
+        if (data.chunks && data.chunks.length > 0) {
+            data.chunks.forEach((c, idx) => {
+                const item = document.createElement('div');
+                item.style.padding = '14px 16px';
+                item.style.background = 'var(--bg-surface-elevated)';
+                item.style.border = '1px solid var(--border-color)';
+                item.style.borderRadius = 'var(--radius-md)';
+                item.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--secondary); font-weight: 600; margin-bottom: 6px;">
+                        <span>CHUNK #${idx + 1}</span>
+                        <span>PAGE ${c.page_number}</span>
+                    </div>
+                    <p style="font-size: 0.88rem; color: var(--text-main); line-height: 1.5;">${c.preview}</p>
+                `;
+                body.appendChild(item);
+            });
+        } else {
+            body.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No chunks found.</p>';
+        }
+    } catch (e) {
+        body.innerHTML = '<p style="color: var(--danger); text-align: center;">Error loading chunks.</p>';
+    }
+}
+
+function closeChunksModal() {
+    document.getElementById('chunks-modal').style.display = 'none';
+}
+</script>
+{% endblock %}

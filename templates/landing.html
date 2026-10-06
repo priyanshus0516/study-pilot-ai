@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}StudyPilot AI – Your Study Material, Transformed into an Intelligent Learning Workspace{% endblock %}
+
+{% block unauth_content %}
+<div class="landing-page">
+    <!-- Navbar -->
+    <header style="padding: 24px 40px; display: flex; justify-content: space-between; align-items: center; max-width: 1300px; margin: 0 auto;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="brand-icon" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h2 style="font-size: 1.35rem; font-family: var(--font-heading);">StudyPilot AI</h2>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Log In</a>
+            <a href="{{ url_for('auth.signup') }}" class="btn btn-primary">Get Started Free</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="landing-hero">
+        <div class="hero-badge">
+            <i class="fa-solid fa-sparkles" style="color: #818cf8;"></i>
+            Empowering Students with Course-Grounded AI
+        </div>
+        <h1 class="hero-title">Study Smarter with<br><span style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">StudyPilot AI</span></h1>
+        <p class="hero-subtitle">
+            Turn your study material into an intelligent learning workspace.<br>
+            Upload your PDFs, ask questions, generate summaries, take adaptive quizzes, and practice flashcards.
+        </p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('auth.signup') }}" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-rocket"></i> Get Started
+            </a>
+            <a href="#features" class="btn btn-secondary btn-lg">
+                <i class="fa-solid fa-compass"></i> Explore Features
+            </a>
+        </div>
+
+        <!-- Workflow Pipeline -->
+        <div class="workflow-section">
+            <p style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">The Core Learning Pipeline</p>
+            <div class="workflow-pills">
+                <span class="wf-step"><i class="fa-solid fa-cloud-arrow-up" style="color: #6366f1;"></i> Upload</span>
+                <span class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <span class="wf-step"><i class="fa-solid fa-file-invoice" style="color: #06b6d4;"></i> Extract</span>
+                <span class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <span class="wf-step"><i class="fa-solid fa-brain" style="color: #a855f7;"></i> Understand</span>
+                <span class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <span class="wf-step"><i class="fa-solid fa-comments" style="color: #3b82f6;"></i> Ask</span>
+                <span class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <span class="wf-step"><i class="fa-solid fa-wand-magic-sparkles" style="color: #ec4899;"></i> Generate</span>
+                <span class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <span class="wf-step"><i class="fa-solid fa-clone" style="color: #10b981;"></i> Practice</span>
+                <span class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <span class="wf-step"><i class="fa-solid fa-chart-line" style="color: #f59e0b;"></i> Track</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section id="features" style="max-width: 1200px; margin: 0 auto; padding: 60px 24px;">
+        <div style="text-align: center; margin-bottom: 48px;">
+            <h2 style="font-size: 2.2rem; margin-bottom: 12px;">Everything You Need to Ace Your Exams</h2>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">No generic chatbot hallucinations. Every answer, quiz, and summary is grounded directly in the study notes you upload.</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </div>
+                <h3>1. PDF & Notes Extraction</h3>
+                <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.92rem;">
+                    Upload lecture slides, textbook chapters, and handwritten notes. Extracts, cleans text, and splits into semantic chunks.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee;">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+                <h3>2. Study-Material Grounded AI</h3>
+                <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.92rem;">
+                    Ask specific questions like "What is a virtual function?" and receive accurate answers citing exact document page references.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
+                    <i class="fa-solid fa-file-lines"></i>
+                </div>
+                <h3>3. Intelligent Summarizer</h3>
+                <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.92rem;">
+                    Generate short, medium, or detailed exam summaries complete with Key Concepts, Important Definitions, and Exam High-Yield Points.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon" style="background: rgba(236, 72, 153, 0.15); color: #f472b6;">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <h3>4. Automatic Quiz Generator</h3>
+                <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.92rem;">
+                    Custom MCQs with 4 options, difficulty selection, detailed explanations, instant scoring, and weak-topic detection.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+                    <i class="fa-solid fa-clone"></i>
+                </div>
+                <h3>5. 3D Flip Flashcards</h3>
+                <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.92rem;">
+                    Interactive card-flip interface to memorize core principles. Mark cards as learned or review again at your own pace.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <h3>6. Weak Topic Detection</h3>
+                <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.92rem;">
+                    Analyzes your quiz accuracy across topics (OOP, DBMS, Networks, DSA) and alerts you to weak areas with 1-click review paths.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section style="background: linear-gradient(180deg, transparent, rgba(99, 102, 241, 0.08)); padding: 80px 24px; text-align: center;">
+        <h2 style="font-size: 2.2rem; margin-bottom: 16px;">Ready to Transform Your Study Habits?</h2>
+        <p style="color: var(--text-muted); margin-bottom: 32px; font-size: 1.1rem;">Upload your first document in seconds and experience the future of personalized revision.</p>
+        <a href="{{ url_for('auth.signup') }}" class="btn btn-primary btn-lg">
+            Create Free Student Account <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </section>
+</div>
+{% endblock %}

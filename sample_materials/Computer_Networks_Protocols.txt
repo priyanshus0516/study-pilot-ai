@@ -1,0 +1,27 @@
+COMPUTER NETWORKS & DISTRIBUTED SYSTEMS
+MODULE: OSI MODEL AND TCP/IP PROTOCOL SUITE
+
+1. Overview of Computer Networks
+A computer network is an interconnected group of autonomous computing devices capable of exchanging data and sharing resources over communication links.
+
+2. OSI 7-Layer Reference Model
+The International Organization for Standardization (ISO) developed the Open Systems Interconnection (OSI) reference model:
+- Layer 7: Application Layer (HTTP, FTP, SMTP, DNS) - User interface and application services.
+- Layer 6: Presentation Layer - Data translation, encryption, decryption, and compression.
+- Layer 5: Session Layer - Establishes, manages, and terminates network dialogue and sessions.
+- Layer 4: Transport Layer (TCP, UDP) - End-to-end communication, segmentation, flow control, and error correction.
+- Layer 3: Network Layer (IP, ICMP, OSPF, BGP) - Logical addressing, packet forwarding, and routing.
+- Layer 2: Data Link Layer (Ethernet, Wi-Fi, MAC addresses) - Framing, node-to-node hop delivery, and error detection (CRC).
+- Layer 1: Physical Layer - Bit stream transmission across physical media (cables, radio waves, optical fibers).
+
+3. TCP vs UDP Protocol Differences
+- Transmission Control Protocol (TCP): Connection-oriented, guarantees delivery, preserves sequence order via acknowledgments and sequence numbers, implements sliding-window flow control and congestion control.
+- User Datagram Protocol (UDP): Connectionless, lightweight, unreliable best-effort delivery, no retransmissions, ideal for streaming media, DNS lookups, and online gaming.
+
+4. IP Addressing and Subnetting
+IPv4 addresses are 32 bits divided into 4 octets. Subnet masks separate the network ID from the host ID. Classless Inter-Domain Routing (CIDR) eliminates rigid address classes.
+
+5. High-Yield Exam Points
+- Three-way handshake for TCP connection establishment: SYN -> SYN-ACK -> ACK.
+- Difference between Hub (Layer 1 broadcast), Switch (Layer 2 frame switching based on MAC), and Router (Layer 3 packet routing based on IP).
+- DNS port number: 53. HTTP: 80. HTTPS: 443. SSH: 22.

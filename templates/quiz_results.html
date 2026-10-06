@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz Results: {{ quiz.topic }} – StudyPilot AI{% endblock %}
+{% block header_title %}Performance Evaluation{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <!-- Performance Summary Card -->
+    <div class="card" style="text-align: center; padding: 40px 24px; margin-bottom: 30px; position: relative; overflow: hidden;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 90px; height: 90px; border-radius: 50%; background: {% if percentage >= 80 %}rgba(16, 185, 129, 0.15){% elif percentage >= 60 %}rgba(245, 158, 11, 0.15){% else %}rgba(239, 68, 68, 0.15){% endif %}; margin-bottom: 20px;">
+            <i class="fa-solid {% if percentage >= 80 %}fa-trophy{% elif percentage >= 60 %}fa-award{% else %}fa-triangle-exclamation{% endif %}" style="font-size: 2.8rem; color: {% if percentage >= 80 %}#10b981{% elif percentage >= 60 %}#f59e0b{% else %}#ef4444{% endif %};"></i>
+        </div>
+
+        <h1 style="font-size: 2.2rem; margin-bottom: 6px;">
+            {% if percentage >= 80 %}Excellent Mastery! 🎉{% elif percentage >= 60 %}Good Effort! Keep Practicing 👍{% else %}Needs Further Revision 📚{% endif %}
+        </h1>
+        <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 28px;">Assessment results for <strong>{{ quiz.topic }}</strong> ({{ quiz.difficulty }} Difficulty)</p>
+
+        <!-- Stats Chips -->
+        <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-bottom: 24px;">
+            <div style="background: var(--bg-surface-elevated); padding: 14px 24px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #fff;">{{ quiz.score }} / {{ quiz.total_questions }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Final Score</div>
+            </div>
+
+            <div style="background: var(--bg-surface-elevated); padding: 14px 24px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 1.8rem; font-weight: 800; color: {% if percentage >= 80 %}#34d399{% elif percentage >= 60 %}#fbbf24{% else %}#f87171{% endif %};">{{ percentage }}%</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Accuracy</div>
+            </div>
+
+            <div style="background: var(--bg-surface-elevated); padding: 14px 24px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #34d399;">{{ correct_count }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Correct</div>
+            </div>
+
+            <div style="background: var(--bg-surface-elevated); padding: 14px 24px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #f87171;">{{ incorrect_count }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Incorrect</div>
+            </div>
+        </div>
+
+        {% if percentage < 70 %}
+        <div class="recommendation-box" style="margin: 0 auto 20px; max-width: 650px; text-align: left;">
+            <div class="rec-content">
+                <div class="rec-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="rec-text">
+                    <h3>Weak Topic Detected: {{ quiz.topic }}</h3>
+                    <p>Your accuracy was {{ percentage }}%. StudyPilot recommends reviewing the summary or practicing flashcards before your exam.</p>
+                </div>
+            </div>
+            <div class="rec-actions">
+                <a href="{{ url_for('flashcards.flashcards_home', topic=quiz.topic) }}" class="btn btn-accent btn-sm">Flashcards</a>
+                <a href="{{ url_for('summary.summary_view') }}" class="btn btn-secondary btn-sm">Summary</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="display: flex; justify-content: center; gap: 14px; margin-top: 20px;">
+            <a href="{{ url_for('quiz.quiz_home') }}" class="btn btn-secondary">
+                <i class="fa-solid fa-list-check"></i> Back to Quizzes
+            </a>
+            <a href="{{ url_for('quiz.quiz_home', topic=quiz.topic) }}" class="btn btn-primary">
+                <i class="fa-solid fa-rotate-right"></i> Retake / Practice More
+            </a>
+        </div>
+    </div>
+
+    <!-- Detailed Question-by-Question Review -->
+    <h3 style="font-size: 1.3rem; margin-bottom: 20px;"><i class="fa-solid fa-square-check" style="color: var(--primary);"></i> Answer Key & In-Depth Explanations</h3>
+
+    {% for q in questions %}
+    {% set is_correct = (q.selected_answer == q.correct_answer) %}
+    <div class="card" style="margin-bottom: 20px; border-left: 4px solid {% if is_correct %}#10b981{% else %}#ef4444{% endif %};">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Question {{ loop.index }}</span>
+            {% if is_correct %}
+                <span class="badge" style="background: var(--success-bg); color: var(--success); padding: 4px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;">
+                    <i class="fa-solid fa-check"></i> Correct
+                </span>
+            {% else %}
+                <span class="badge" style="background: var(--danger-bg); color: var(--danger); padding: 4px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;">
+                    <i class="fa-solid fa-xmark"></i> Incorrect
+                </span>
+            {% endif %}
+        </div>
+
+        <h4 style="font-size: 1.1rem; margin-bottom: 16px;">{{ q.question }}</h4>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+            <div style="padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.92rem; background: {% if q.correct_answer == 'A' %}rgba(16, 185, 129, 0.15); border: 1px solid #10b981; font-weight: 600;{% elif q.selected_answer == 'A' %}rgba(239, 68, 68, 0.15); border: 1px solid #ef4444;{% else %}var(--bg-surface-elevated);{% endif %}">
+                <strong>A:</strong> {{ q.option_a }}
+            </div>
+            <div style="padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.92rem; background: {% if q.correct_answer == 'B' %}rgba(16, 185, 129, 0.15); border: 1px solid #10b981; font-weight: 600;{% elif q.selected_answer == 'B' %}rgba(239, 68, 68, 0.15); border: 1px solid #ef4444;{% else %}var(--bg-surface-elevated);{% endif %}">
+                <strong>B:</strong> {{ q.option_b }}
+            </div>
+            <div style="padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.92rem; background: {% if q.correct_answer == 'C' %}rgba(16, 185, 129, 0.15); border: 1px solid #10b981; font-weight: 600;{% elif q.selected_answer == 'C' %}rgba(239, 68, 68, 0.15); border: 1px solid #ef4444;{% else %}var(--bg-surface-elevated);{% endif %}">
+                <strong>C:</strong> {{ q.option_c }}
+            </div>
+            <div style="padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.92rem; background: {% if q.correct_answer == 'D' %}rgba(16, 185, 129, 0.15); border: 1px solid #10b981; font-weight: 600;{% elif q.selected_answer == 'D' %}rgba(239, 68, 68, 0.15); border: 1px solid #ef4444;{% else %}var(--bg-surface-elevated);{% endif %}">
+                <strong>D:</strong> {{ q.option_d }}
+            </div>
+        </div>
+
+        {% if q.explanation %}
+        <div style="background: rgba(99, 102, 241, 0.08); border-left: 3px solid var(--primary); padding: 12px 16px; border-radius: 4px; font-size: 0.88rem; color: #cbd5e1;">
+            <strong><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Concept Explanation:</strong> {{ q.explanation }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

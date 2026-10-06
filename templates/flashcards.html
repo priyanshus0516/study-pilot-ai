@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}3D Flashcards – StudyPilot AI{% endblock %}
+{% block header_title %}Memory Flashcard Deck{% endblock %}
+
+{% block content %}
+<div class="flashcards-page">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 style="font-size: 1.65rem; margin-bottom: 6px;">Active Recall Flashcards</h1>
+            <p style="color: var(--text-muted); font-size: 0.92rem;">Flip cards to test memory retention. Automatically generated from your documents or created manually.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleManualCardModal()">
+                <i class="fa-solid fa-plus"></i> Add Card Manually
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="toggleGenerateModal()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> AI Generate from Notes
+            </button>
+        </div>
+    </div>
+
+    <!-- Topic Filter Bar -->
+    {% if topics %}
+    <div style="display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 6px;">
+        <a href="{{ url_for('flashcards.flashcards_home') }}" class="btn btn-sm {% if not selected_topic %}btn-primary{% else %}btn-secondary{% endif %}" style="border-radius: 20px;">
+            All Topics ({{ total_count }})
+        </a>
+        {% for t in topics %}
+        <a href="{{ url_for('flashcards.flashcards_home', topic=t) }}" class="btn btn-sm {% if selected_topic == t %}btn-primary{% else %}btn-secondary{% endif %}" style="border-radius: 20px;">
+            {{ t }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if flashcards %}
+    <!-- 3D Interactive Carousel Stage -->
+    <div class="flashcard-stage">
+        <div class="flashcard-3d" id="active-flashcard-3d">
+            <!-- Front Face -->
+            <div class="card-face front">
+                <div class="card-face-header">
+                    <span id="card-topic-display" style="color: var(--primary); font-weight: 700;">General</span>
+                    <span id="card-counter">Card 1 of {{ flashcards | length }}</span>
+                </div>
+                <div class="card-face-content" id="card-front-text">
+                    {{ flashcards[0].question }}
+                </div>
+                <div class="card-face-footer">
+                    <i class="fa-solid fa-rotate"></i> Click card or press Flip to reveal answer
+                </div>
+            </div>
+
+            <!-- Back Face -->
+            <div class="card-face back">
+                <div class="card-face-header">
+                    <span style="color: var(--secondary); font-weight: 700;">ANSWER & DEFINITION</span>
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-brain"></i></span>
+                </div>
+                <div class="card-face-content" id="card-back-text" style="font-size: 1.15rem; font-weight: 400;">
+                    {{ flashcards[0].answer }}
+                </div>
+                <div class="card-face-footer">
+                    <i class="fa-solid fa-rotate"></i> Click to flip back
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Row -->
+    <div class="flashcard-controls">
+        <button type="button" class="btn btn-secondary btn-lg" id="card-prev-btn" title="Previous Card">
+            <i class="fa-solid fa-chevron-left"></i> Previous
+        </button>
+        <button type="button" class="btn btn-accent btn-lg" id="card-flip-btn">
+            <i class="fa-solid fa-arrows-rotate"></i> Flip Card
+        </button>
+        <button type="button" class="btn btn-secondary btn-lg" id="card-next-btn" title="Next Card">
+            Next <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <button type="button" class="btn btn-secondary btn-lg" id="card-toggle-learned-btn" style="margin-left: 12px;">
+            <i class="fa-regular fa-circle"></i> Mark as Learned
+        </button>
+    </div>
+
+    <!-- All Cards Grid Overview -->
+    <div style="margin-top: 50px;">
+        <h3 style="font-size: 1.25rem; margin-bottom: 20px;"><i class="fa-solid fa-table-cells" style="color: var(--primary);"></i> Complete Deck List ({{ flashcards | length }} cards)</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px;">
+            {% for card in flashcards %}
+            <div class="card" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-top: 3px solid {% if card.is_learned %}#10b981{% else %}var(--primary){% endif %};">
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: var(--secondary);">{{ card.topic }}</span>
+                        {% if card.is_learned %}
+                            <span style="color: var(--success); font-weight: 600;"><i class="fa-solid fa-check"></i> Learned</span>
+                        {% else %}
+                            <span style="color: var(--warning); font-weight: 600;">Needs Review</span>
+                        {% endif %}
+                    </div>
+                    <h4 style="font-size: 0.96rem; margin-bottom: 10px;">{{ card.question }}</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">{{ card.answer }}</p>
+                </div>
+                <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                    <form method="POST" action="{{ url_for('flashcards.delete_card', card_id=card.id) }}" onsubmit="return confirm('Delete this flashcard?');">
+                        <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% else %}
+    <div class="card" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+        <i class="fa-solid fa-clone" style="font-size: 3rem; margin-bottom: 14px; opacity: 0.3;"></i>
+        <h2>No flashcards created yet</h2>
+        <p style="font-size: 0.95rem; margin: 8px 0 24px;">Generate cards automatically from your uploaded notes or build a custom deck!</p>
+        <button type="button" class="btn btn-primary" onclick="toggleGenerateModal()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> AI Generate Cards Now
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal 1: AI Generate Flashcards -->
+<div id="generate-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 20px;">
+    <div class="card" style="width: 100%; max-width: 520px; padding: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-size: 1.2rem;"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary);"></i> AI Generate Flashcards</h3>
+            <button type="button" onclick="toggleGenerateModal()" style="background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer;">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('flashcards.generate_cards') }}">
+            <div class="form-group">
+                <label class="form-label" for="gen-doc">From Uploaded Material (Optional)</label>
+                <select id="gen-doc" name="document_id" class="form-select">
+                    <option value="">-- Or enter topic below --</option>
+                    {% for doc in documents %}
+                        <option value="{{ doc.id }}">{{ doc.filename }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="gen-topic">Topic / Concept Name</label>
+                <input type="text" id="gen-topic" name="topic" class="form-control" placeholder="e.g. Virtual Functions, Polymorphism, TCP/IP" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="gen-count">Number of Cards</label>
+                <select id="gen-count" name="count" class="form-select">
+                    <option value="4">4 Flashcards</option>
+                    <option value="6" selected>6 Flashcards</option>
+                    <option value="10">10 Flashcards</option>
+                </select>
+            </div>
+            <div style="text-align: right; margin-top: 10px;">
+                <button type="submit" class="btn btn-primary">Generate Deck</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal 2: Add Card Manually -->
+<div id="manual-card-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 20px;">
+    <div class="card" style="width: 100%; max-width: 520px; padding: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-size: 1.2rem;"><i class="fa-solid fa-plus" style="color: var(--secondary);"></i> Create Flashcard Manually</h3>
+            <button type="button" onclick="toggleManualCardModal()" style="background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer;">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('flashcards.create_manual') }}">
+            <div class="form-group">
+                <label class="form-label" for="man-topic">Subject / Topic</label>
+                <input type="text" id="man-topic" name="topic" class="form-control" placeholder="e.g. Object Oriented Programming" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="man-q">Front: Question / Term</label>
+                <input type="text" id="man-q" name="question" class="form-control" placeholder="e.g. What is dynamic binding?" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="man-a">Back: Answer / Explanation</label>
+                <textarea id="man-a" name="answer" class="form-control" rows="3" placeholder="e.g. Dynamic binding connects method calls to method definitions at runtime..." required></textarea>
+            </div>
+            <div style="text-align: right; margin-top: 10px;">
+                <button type="submit" class="btn btn-primary">Add Flashcard</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.studyCards = [
+    {% for card in flashcards %}
+    {
+        id: {{ card.id }},
+        question: {{ card.question | tojson }},
+        answer: {{ card.answer | tojson }},
+        topic: {{ card.topic | tojson }},
+        is_learned: {{ 'true' if card.is_learned else 'false' }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+function toggleGenerateModal() {
+    const m = document.getElementById('generate-modal');
+    m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function toggleManualCardModal() {
+    const m = document.getElementById('manual-card-modal');
+    m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+}
+</script>
+{% endblock %}

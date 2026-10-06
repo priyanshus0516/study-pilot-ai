@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Summaries – StudyPilot AI{% endblock %}
+{% block header_title %}Document Summarizer{% endblock %}
+
+{% block content %}
+<div class="summary-page">
+    <div style="margin-bottom: 24px;">
+        <h1 style="font-size: 1.65rem; margin-bottom: 6px;">Intelligent Study Summarizer</h1>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">Select any uploaded study material and choose your desired depth to extract structured summaries and exam points.</p>
+    </div>
+
+    <!-- Controls Card -->
+    <div class="card" style="margin-bottom: 30px;">
+        <div style="display: grid; grid-template-columns: 2fr 1.5fr auto; gap: 20px; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="summary-doc-select">Select Study Material</label>
+                <select id="summary-doc-select" class="form-select">
+                    <option value="">-- Choose a Document --</option>
+                    {% for doc in documents %}
+                        <option value="{{ doc.id }}" {% if selected_doc_id == doc.id %}selected{% endif %}>{{ doc.filename }} ({{ doc.chunks | length }} chunks)</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Summary Depth</label>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn btn-secondary btn-sm summary-tab" data-mode="short" style="flex: 1;">Short</button>
+                    <button type="button" class="btn btn-secondary btn-sm summary-tab active" data-mode="medium" style="flex: 1;">Medium</button>
+                    <button type="button" class="btn btn-secondary btn-sm summary-tab" data-mode="detailed" style="flex: 1;">Detailed</button>
+                </div>
+            </div>
+
+            <div>
+                <button type="button" id="generate-summary-btn" class="btn btn-primary" style="height: 48px;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Summary
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="summary-loader" style="display: none; text-align: center; padding: 50px;">
+        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 16px;"></i>
+        <h3>Analyzing Document Structure...</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Synthesizing key definitions and high-yield exam takeaways</p>
+    </div>
+
+    <!-- Summary Results Container -->
+    <div id="summary-results-container" style="display: none;">
+        <div class="card" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+                <div>
+                    <span id="summary-mode-badge" class="badge" style="background: var(--primary-light); color: #818cf8; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">MEDIUM</span>
+                    <h2 id="summary-doc-title" style="font-size: 1.4rem; margin-top: 6px;">Document Summary</h2>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="copySummaryText()">
+                        <i class="fa-regular fa-copy"></i> Copy Text
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Executive Summary -->
+            <div style="margin-bottom: 28px;">
+                <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 10px;"><i class="fa-solid fa-align-left"></i> Core Overview</h3>
+                <div id="summary-body-text" style="font-size: 1rem; line-height: 1.7; color: var(--text-main); background: var(--bg-surface-elevated); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-line;"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px;">
+                <!-- Key Concepts -->
+                <div style="background: var(--bg-surface-elevated); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <h4 style="font-size: 1rem; color: #a855f7; margin-bottom: 14px;"><i class="fa-solid fa-lightbulb"></i> Key Concepts</h4>
+                    <ul id="summary-key-concepts" style="padding-left: 20px; font-size: 0.92rem; line-height: 1.8; color: var(--text-main);"></ul>
+                </div>
+
+                <!-- Important Definitions -->
+                <div style="background: var(--bg-surface-elevated); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <h4 style="font-size: 1rem; color: #06b6d4; margin-bottom: 14px;"><i class="fa-solid fa-book-bookmark"></i> Important Definitions</h4>
+                    <ul id="summary-definitions" style="padding-left: 20px; font-size: 0.92rem; line-height: 1.8; color: var(--text-main);"></ul>
+                </div>
+            </div>
+
+            <!-- Exam Points -->
+            <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(99, 102, 241, 0.08)); padding: 22px; border-radius: var(--radius-md); border: 1px solid rgba(245, 158, 11, 0.25);">
+                <h4 style="font-size: 1.05rem; color: #fbbf24; margin-bottom: 14px;"><i class="fa-solid fa-graduation-cap"></i> High-Yield Exam Points</h4>
+                <ul id="summary-exam-points" style="padding-left: 20px; font-size: 0.94rem; line-height: 1.8; color: var(--text-main);"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copySummaryText() {
+    const text = document.getElementById('summary-body-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Summary text copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

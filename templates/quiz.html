@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz Generator – StudyPilot AI{% endblock %}
+{% block header_title %}Adaptive Quiz Generator{% endblock %}
+
+{% block content %}
+<div class="quiz-page">
+    <div style="margin-bottom: 24px;">
+        <h1 style="font-size: 1.65rem; margin-bottom: 6px;">AI Quiz Generator & Practice</h1>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">Generate multiple-choice quizzes tailored to your uploaded study materials or specific exam topics.</p>
+    </div>
+
+    <!-- Generator Form Card -->
+    <div class="card" style="margin-bottom: 30px;">
+        <h3 class="card-title" style="margin-bottom: 20px;"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary);"></i> Configure New Quiz</h3>
+        
+        <form method="POST" action="{{ url_for('quiz.create_quiz') }}">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label" for="document_id">Source Document (Optional)</label>
+                    <select id="document_id" name="document_id" class="form-select">
+                        <option value="">-- Generate from Topic --</option>
+                        {% for doc in documents %}
+                            <option value="{{ doc.id }}">{{ doc.filename }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="topic">Subject / Topic</label>
+                    <input type="text" id="topic" name="topic" class="form-control" placeholder="e.g. Polymorphism, Virtual Functions, DBMS" value="{{ preset_topic or '' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="difficulty">Difficulty Level</label>
+                    <select id="difficulty" name="difficulty" class="form-select">
+                        <option value="Easy">Easy (Foundational)</option>
+                        <option value="Medium" selected>Medium (Standard Exam)</option>
+                        <option value="Hard">Hard (Deep Conceptual)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="num_questions">Question Count</label>
+                    <select id="num_questions" name="num_questions" class="form-select">
+                        <option value="3">3 Questions (Quick Sprint)</option>
+                        <option value="5" selected>5 Questions (Standard)</option>
+                        <option value="10">10 Questions (Full Test)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 10px; text-align: right;">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-play"></i> Generate & Begin Quiz
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Past Quiz Attempts Table -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left" style="color: var(--secondary);"></i> Quiz History & Results</h3>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">{{ quizzes | length }} attempts</span>
+        </div>
+
+        {% if quizzes %}
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Topic</th>
+                        <th>Difficulty</th>
+                        <th>Score</th>
+                        <th>Accuracy</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in quizzes %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ q.topic }}</td>
+                        <td><span style="padding: 3px 8px; border-radius: 4px; font-size: 0.78rem; background: var(--bg-surface-elevated);">{{ q.difficulty }}</span></td>
+                        <td>{{ q.score }} / {{ q.total_questions }}</td>
+                        <td>
+                            {% set pct = ((q.score / q.total_questions * 100) | round(1)) if q.total_questions > 0 else 0 %}
+                            <span style="font-weight: 700; color: {% if pct >= 80 %}#34d399{% elif pct >= 60 %}#fbbf24{% else %}#f87171{% endif %};">
+                                {{ pct }}%
+                            </span>
+                        </td>
+                        <td>
+                            {% if q.completed %}
+                                <span class="badge" style="background: var(--success-bg); color: var(--success); padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">Completed</span>
+                            {% else %}
+                                <span class="badge" style="background: var(--warning-bg); color: var(--warning); padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">Incomplete</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: var(--text-muted);">{{ q.created_at.strftime('%b %d, %Y') }}</td>
+                        <td style="text-align: right;">
+                            {% if q.completed %}
+                                <a href="{{ url_for('quiz.quiz_results', quiz_id=q.id) }}" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-chart-simple"></i> Review Results
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('quiz.take_quiz', quiz_id=q.id) }}" class="btn btn-primary btn-sm">
+                                    <i class="fa-solid fa-play"></i> Resume
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+            <i class="fa-solid fa-brain" style="font-size: 3rem; margin-bottom: 12px; opacity: 0.3;"></i>
+            <h3>No quiz attempts yet</h3>
+            <p style="font-size: 0.92rem; margin-top: 6px;">Configure your topic above to generate your first test!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
