@@ -1,7 +1,21 @@
 # StudyPilot AI – Intelligent AI-Powered Study Assistant
 
+[![Live Demo](https://img.shields.io/badge/Demo-Live%20on%20Railway-00c853?style=for-the-badge&logo=railway&logoColor=white)](https://web-production-bac80.up.railway.app)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/priyanshus0516/study-pilot-ai)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Framework-Flask%203.0-000000?style=for-the-badge&logo=flask)](https://flask.palletsprojects.com/)
+
 > **"Your study material, transformed into an intelligent learning workspace."**  
 > *Upload → Extract → Understand → Ask → Generate → Practice → Track*
+
+---
+
+### 🌐 Live Production Deployment
+- **Live URL:** [https://web-production-bac80.up.railway.app](https://web-production-bac80.up.railway.app)
+- **Hosted On:** Railway Cloud
+- **Demo Student Credentials:**
+  - **Email:** `demo@studypilot.ai`
+  - **Password:** `pilot123`
 
 ---
 
@@ -186,9 +200,10 @@ StudyPilot-AI/
 
 ## 6. Installation & Quick Start
 
-### Step 1: Clone or Navigate to the Project
+### Step 1: Clone the Repository
 ```bash
-cd /Users/priyanshumac4/.gemini/antigravity-ide/scratch/StudyPilot-AI
+git clone https://github.com/priyanshus0516/study-pilot-ai.git
+cd study-pilot-ai
 ```
 
 ### Step 2: Set Up Virtual Environment & Dependencies
